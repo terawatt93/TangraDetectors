@@ -26,6 +26,69 @@
 #include <string>
 using namespace std;
 
+class Stilbene {
+public:
+  G4LogicalVolume* Crystall;
+  G4LogicalVolume* Assembly;
+  
+  G4LogicalVolume* ExternalCover_cylinder;
+  G4LogicalVolume* ExternalCover_bottom;
+  G4LogicalVolume* ExternalCover_back;
+  G4AssemblyVolume* Cover;
+  
+  Stilbene();
+  
+  void PlaceCartesian(string name, G4RotationMatrix rotm1,
+		      G4ThreeVector pos,  G4LogicalVolume *logicWorld,
+		      int CopyNo);
+  
+  void Place(string name, G4RotationMatrix rotm1, double r, double phi,
+	     double theta,  G4LogicalVolume *logicWorld, int CopyNo);
+	
+};
+
+class LaBr {
+public:
+  G4LogicalVolume* Crystall;
+  G4LogicalVolume* Assembly;
+  
+  G4LogicalVolume* ExternalCover_cylinder;
+  G4LogicalVolume* ExternalCover_bottom;
+  G4LogicalVolume* ExternalCover_back;
+  G4AssemblyVolume* Cover;
+  
+  LaBr();
+  
+  void PlaceCartesian(string name, G4RotationMatrix rotm1,
+		      G4ThreeVector pos,  G4LogicalVolume *logicWorld,
+		      int CopyNo);
+  
+  void Place(string name, G4RotationMatrix rotm1, double r, double phi,
+	     double theta,  G4LogicalVolume *logicWorld, int CopyNo);
+	
+};
+
+class Source {
+public:
+  G4LogicalVolume* ActivSource;
+  G4LogicalVolume* SourceHolder;
+
+  G4AssemblyVolume* Cover;
+
+  G4LogicalVolume* Assembly;
+  
+  Source();
+  
+  void PlaceCartesian(string name, G4RotationMatrix rotm1,
+		      G4ThreeVector pos,  G4LogicalVolume *logicWorld,
+		      int CopyNo);
+  
+  void Place(string name, G4RotationMatrix rotm1, double r, double phi,
+	     double theta,  G4LogicalVolume *logicWorld, int CopyNo);
+	
+};
+
+
 class ORTEC_GMX30_83_PL_S
 {
 	public:

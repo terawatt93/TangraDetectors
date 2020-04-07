@@ -1,5 +1,263 @@
 #include "Detectors.hh"
 
+Stilbene::Stilbene(){
+  
+  G4NistManager* Nist = G4NistManager::Instance();
+  G4Material* Stilbene_mat = Nist->FindOrBuildMaterial("G4_STILBENE");
+  G4Material* Al = Nist->FindOrBuildMaterial("G4_Al");
+  G4Material* Air = Nist->FindOrBuildMaterial("G4_Galactic");
+	
+  G4Tubs *CrystallG = new G4Tubs("Crystall",0*mm,76/2*mm,50/2*mm,0,360*deg); 
+	
+  // main case cylinder
+  G4Tubs *Cover1=new G4Tubs("Cover1",2+76/2*mm,83.2/2*mm,90/2*mm,0,360*deg);
+  // bottom and back
+  G4Tubs *Cover2=new G4Tubs("Cover2",0*mm,2+76/2*mm,1*mm,0,360*deg);
+  	
+  //solid volume which contains all elements of the detector, it is used to
+  //"group" all parts of the detector
+  G4Tubs *WholeVolume = new G4Tubs("Whole",0*mm,83.2/2*mm,90/2*mm,0,360*deg);
+  	
+  //create logical volume (shape, visualisation attributes,material)
+  Crystall = new G4LogicalVolume(CrystallG,Stilbene_mat,"Stilbene");
+ 	
+  //main case cylinder
+  ExternalCover_cylinder = new G4LogicalVolume(Cover1,Al,"Cover1");
+  //bottom
+  ExternalCover_bottom = new G4LogicalVolume(Cover2,Al,"Cover2");
+  //back
+  ExternalCover_back = new G4LogicalVolume(Cover2,Al,"Cover3");
+ 	
+  Assembly = new G4LogicalVolume(WholeVolume,Air,"WholeVolume"); 	
+}
+
+void Stilbene::PlaceCartesian(string name, G4RotationMatrix rotm1,
+			      G4ThreeVector pos,  G4LogicalVolume *logicWorld,
+			      int CopyNo){
+  //(color,R,G,B,Vis in %)
+  G4VisAttributes *CoverColor = new G4VisAttributes(G4Colour(0,1,0,0.2));
+  G4VisAttributes *CrystallColor = new G4VisAttributes(G4Colour(0,0,1));
+  G4VisAttributes *WholeVolumeVis = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
+  WholeVolumeVis->SetVisibility(false); 
+  Assembly->SetVisAttributes(WholeVolumeVis);
+
+  // position of the main cylinder inside the G4AssemblyVolume
+  G4ThreeVector pos2 = G4ThreeVector(0,0,0);
+  // position of the bottom inside the G4AssemblyVolume
+  G4ThreeVector pos3 = G4ThreeVector(0,0,-(90/2-1)*mm);
+  // position of the back tap inside the G4AssemblyVolume
+  G4ThreeVector pos4 = G4ThreeVector(0,0,(90/2-1)*mm);
+  
+  // position of the crystall inside the Assembly
+  G4ThreeVector posDet = G4ThreeVector(0,0,-18*mm);
+	
+  G4RotationMatrix rotm2;
+	
+  //add visualisation parameters 
+  ExternalCover_cylinder->SetVisAttributes(CoverColor);
+  ExternalCover_bottom->SetVisAttributes(CoverColor);
+  ExternalCover_back->SetVisAttributes(CoverColor);
+  Crystall->SetVisAttributes(CrystallColor);
+	
+  //Collect all parts of the case
+  Cover = new G4AssemblyVolume(ExternalCover_cylinder,pos2,&rotm2);
+  Cover->AddPlacedVolume(ExternalCover_bottom, pos3,&rotm2);
+  Cover->AddPlacedVolume(ExternalCover_back, pos4,&rotm2);
+  //And put them to the assembly
+  Cover->MakeImprint(Assembly,pos2, &rotm2, 0, true);
+  	
+  //Place crystall to the assembly
+  new G4PVPlacement(G4Transform3D(rotm2,posDet),Crystall,name.c_str(),Assembly,
+		    false,CopyNo,true);
+  
+  //Place everything to the mother volume (in our case, wolrld)
+  new G4PVPlacement(G4Transform3D(rotm1,pos),Assembly,name.c_str(),logicWorld,
+		    false,1,true);
+}
+
+void Stilbene::Place(string name, G4RotationMatrix rotm1, double r, double phi,
+		     double theta, G4LogicalVolume *logicWorld, int CopyNo){
+  
+  double x, y, z;
+  x=r*sin(theta)*cos(phi);
+  y=r*sin(theta)*sin(phi);
+  z=r*cos(theta);
+  G4ThreeVector pos = G4ThreeVector(x,y,z);
+  PlaceCartesian(name,rotm1,pos,logicWorld,CopyNo);
+}
+
+LaBr::LaBr(){
+  
+  G4NistManager* Nist = G4NistManager::Instance();
+  G4Material* LaBr_mat = Nist->FindOrBuildMaterial("G4_LANTHANUM_OXYBROMIDE");
+  G4Material* Al = Nist->FindOrBuildMaterial("G4_Al");
+  G4Material* Air = Nist->FindOrBuildMaterial("G4_Galactic");
+	
+  G4Tubs *CrystallG = new G4Tubs("Crystall",0*mm,76.2/2*mm,76.2/2*mm,0,360*deg); 
+	
+  // main case cylinder
+  G4Tubs *Cover1=new G4Tubs("Cover1",1+76.2/2*mm,82.5/2*mm,123.5/2*mm,0,360*deg);
+  // bottom and back
+  G4Tubs *Cover2=new G4Tubs("Cover2",0*mm,1+76.2/2*mm,0.5*mm,0,360*deg);
+  	
+  //solid volume which contains all elements of the detector, it is used to
+  //"group" all parts of the detector
+  G4Tubs *WholeVolume = new G4Tubs("Whole",0*mm,82.5/2*mm,123.5/2*mm,0,360*deg);
+  	
+  //create logical volume (shape, visualisation attributes,material)
+  Crystall = new G4LogicalVolume(CrystallG,LaBr_mat,"LaBr");
+ 	
+  //main case cylinder
+  ExternalCover_cylinder = new G4LogicalVolume(Cover1,Al,"Cover1");
+  //bottom
+  ExternalCover_bottom = new G4LogicalVolume(Cover2,Al,"Cover2");
+  //back
+  ExternalCover_back = new G4LogicalVolume(Cover2,Al,"Cover3");
+ 	
+  Assembly = new G4LogicalVolume(WholeVolume,Air,"WholeVolume"); 	
+}
+
+void LaBr::PlaceCartesian(string name, G4RotationMatrix rotm1,
+			  G4ThreeVector pos,  G4LogicalVolume *logicWorld,
+			  int CopyNo){
+  //(color,R,G,B,Vis in %)
+  G4VisAttributes *CoverColor = new G4VisAttributes(G4Colour(1,1,1,0.2));
+  G4VisAttributes *CrystallColor = new G4VisAttributes(G4Colour(0,0,1));
+  G4VisAttributes *WholeVolumeVis = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
+  WholeVolumeVis->SetVisibility(false); 
+  Assembly->SetVisAttributes(WholeVolumeVis);
+
+  // position of the main cylinder inside the G4AssemblyVolume
+  G4ThreeVector pos2 = G4ThreeVector(0,0,0);
+  // position of the bottom inside the G4AssemblyVolume
+  G4ThreeVector pos3 = G4ThreeVector(0,0, -(123.5/2-0.5)*mm);
+  // position of the back tap inside the G4AssemblyVolume
+  G4ThreeVector pos4 = G4ThreeVector(0,0, (123.5/2-0.5)*mm);
+  
+  // position of the crystall inside the Assembly
+  G4ThreeVector posDet = G4ThreeVector(0,0,-21.65*mm);
+  //G4ThreeVector posDet = G4ThreeVector(0,0,-(76.2/2)*mm);
+	
+  G4RotationMatrix rotm2;
+	
+  //add visualisation parameters 
+  ExternalCover_cylinder->SetVisAttributes(CoverColor);
+  ExternalCover_bottom->SetVisAttributes(CoverColor);
+  ExternalCover_back->SetVisAttributes(CoverColor);
+  Crystall->SetVisAttributes(CrystallColor);
+	
+  //Collect all parts of the case
+  Cover = new G4AssemblyVolume(ExternalCover_cylinder,pos2,&rotm2);
+  Cover->AddPlacedVolume(ExternalCover_bottom, pos3,&rotm2);
+  Cover->AddPlacedVolume(ExternalCover_back, pos4,&rotm2);
+  //And put them to the assembly
+  Cover->MakeImprint(Assembly,pos2, &rotm2, 0, true);
+  	
+  //Place crystall to the assembly
+  new G4PVPlacement(G4Transform3D(rotm2,posDet),Crystall,name.c_str(),Assembly,
+		    false,CopyNo,true);
+  
+  //Place everything to the mother volume (in our case, wolrld)
+  new G4PVPlacement(G4Transform3D(rotm1,pos),Assembly,name.c_str(),logicWorld,
+		    false,1,true);
+}
+
+void LaBr::Place(string name, G4RotationMatrix rotm1, double r, double phi,
+		 double theta, G4LogicalVolume *logicWorld, int CopyNo){
+  
+  double x, y, z;
+  x=r*sin(theta)*cos(phi);
+  y=r*sin(theta)*sin(phi);
+  z=r*cos(theta);
+  G4ThreeVector pos = G4ThreeVector(x,y,z);
+  PlaceCartesian(name,rotm1,pos,logicWorld,CopyNo);
+}
+
+Source::Source(){
+  
+  G4NistManager* Nist = G4NistManager::Instance();
+  G4Material* Al = Nist->FindOrBuildMaterial("G4_Al");
+  G4Material* Air = Nist->FindOrBuildMaterial("G4_Galactic");
+
+  G4String name, symbol;
+  G4double a, z;  
+  G4double density = 1.39*g/cm3;
+  G4int nel=3;
+  
+  a = 1.01*g/mole;
+  G4Element* elH  = new G4Element(name="Hydrogen",symbol="H" , z= 1., a);
+  a = 12.01*g/mole;
+  G4Element* elC = new G4Element(name="Carbon", symbol="C", z=6., a);
+  a = 16.00*g/mole;
+  G4Element* elO  = new G4Element(name="Oxygen"  ,symbol="O" , z= 8., a);
+  
+  G4Material* Kapton = new G4Material(name="Kapton", density, nel);
+  Kapton->AddElement(elO,2);
+  Kapton->AddElement(elC,5);
+  Kapton->AddElement(elH,4);
+
+  G4Tubs *SourceGeom = new G4Tubs("ActivSource",0*mm,18./2*mm,1./2*mm,0,360*deg);
+  G4Tubs *Cover1 = new G4Tubs("Cover1",18./2*mm,25./2*mm,3./2*mm,0,360*deg);
+  
+  //solid volume which contains all elements of the source, it is used to
+  //"group" all parts of the source
+  G4Tubs *WholeVolume = new G4Tubs("Whole",0*mm,25./2*mm,3./2*mm,0,360*deg);
+  	
+  //create logical volume (shape, visualisation attributes,material)
+  ActivSource = new G4LogicalVolume(SourceGeom,Kapton,"Source");
+ 	
+  //main case cylinder
+  SourceHolder = new G4LogicalVolume(Cover1,Al,"Cover1");
+  
+  Assembly = new G4LogicalVolume(WholeVolume,Air,"WholeVolume"); 	
+}
+
+void Source::PlaceCartesian(string name, G4RotationMatrix rotm1,
+			    G4ThreeVector pos,  G4LogicalVolume *logicWorld,
+			    int CopyNo){
+  //(color,R,G,B,Vis in %)
+  G4VisAttributes *CoverColor = new G4VisAttributes(G4Colour(0,0,0));
+  G4VisAttributes *SourceColor = new G4VisAttributes(G4Colour(1,1,0));
+  G4VisAttributes *WholeVolumeVis = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
+  WholeVolumeVis->SetVisibility(false); 
+  Assembly->SetVisAttributes(WholeVolumeVis);
+
+  // position of the crystall inside the Assembly
+  G4ThreeVector posSource = G4ThreeVector(0,0,0);
+  	
+  G4RotationMatrix rotm2;
+	
+  //add visualisation parameters 
+  ActivSource->SetVisAttributes(SourceColor);
+  SourceHolder->SetVisAttributes(CoverColor);
+	
+  //Collect all parts of the case
+  Cover = new G4AssemblyVolume(ActivSource,posSource,&rotm2);
+  Cover->AddPlacedVolume(SourceHolder, posSource,&rotm2);
+  
+  //And put them to the assembly
+  Cover->MakeImprint(Assembly, posSource, &rotm2, 0, true);
+  	
+  //Place crystall to the assembly
+  new G4PVPlacement(G4Transform3D(rotm2,posSource),ActivSource,name.c_str(),Assembly,
+		    false,CopyNo,true);
+  
+  //Place everything to the mother volume (in our case, wolrld)
+  new G4PVPlacement(G4Transform3D(rotm1,pos),Assembly,name.c_str(),logicWorld,
+		    false,CopyNo,true);
+}
+
+void Source::Place(string name, G4RotationMatrix rotm1, double r, double phi,
+		   double theta, G4LogicalVolume *logicWorld, int CopyNo){
+  
+  double x, y, z;
+  x=r*sin(theta)*cos(phi);
+  y=r*sin(theta)*sin(phi);
+  z=r*cos(theta);
+  G4ThreeVector pos = G4ThreeVector(x,y,z);
+  PlaceCartesian(name,rotm1,pos,logicWorld,CopyNo);
+}
+
 ORTEC_GMX30_83_PL_S::ORTEC_GMX30_83_PL_S()
 {
 	G4NistManager* Nist = G4NistManager::Instance();
